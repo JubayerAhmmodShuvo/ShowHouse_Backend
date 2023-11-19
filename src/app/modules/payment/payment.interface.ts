@@ -1,5 +1,6 @@
 export interface PaymentDTO {
   price: number;
   name: string;
-  transactionId: string;
+  transactionId?: string;
+  image?: string;
 }

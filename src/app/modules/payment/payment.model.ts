@@ -4,6 +4,7 @@ export interface Payment extends Document {
   price: number;
   name: string;
   transactionId?: string;
+  image?: string;
 }
 const paymentSchema = new Schema(
   {
@@ -16,6 +17,9 @@ const paymentSchema = new Schema(
       required: true,
     },
     transactionId: {
+      type: String,
+    },
+    image: {
       type: String,
     },
   },
