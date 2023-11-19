@@ -8,7 +8,7 @@ import httpStatus from 'http-status';
 import globalErrorHandler from './app/middlewares/globalErrorHandler';
 import router from './app/routes';
 import cookieParser from 'cookie-parser';
-
+import Stripe from 'stripe';
 
 
 
@@ -19,6 +19,18 @@ app.use(cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+const stripeApiKey = process.env.STRIPE_KEY;
+
+if (!stripeApiKey) {
+  throw new Error('Stripe API key is not defined.');
+}
+
+const stripe = new Stripe(stripeApiKey, {
+  apiVersion: '2023-10-16',
+});
+
+
 
 
 app.use('/api/v1/', router);

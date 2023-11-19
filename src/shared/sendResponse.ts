@@ -43,6 +43,12 @@ interface IResponse {
     total: number;
   };
   data?: unknown;
+  clientSecret?: string | null | { clientSecret: string | null };
+  payment?: {
+    price: number;
+    name: string;
+    transactionId: string;
+  };
 }
 
 const sendResponse = <T>(
@@ -57,6 +63,12 @@ const sendResponse = <T>(
       total: number;
     };
     data?: T | null;
+    clientSecret?: string | null | { clientSecret: string | null };
+    payment?: {
+      price: number;
+      name: string;
+      transactionId: string;
+    };
   }
 ) => {
   const response: IResponse = {
@@ -65,6 +77,8 @@ const sendResponse = <T>(
     message: data.message || 'Success',
     meta: data.meta,
     data: data.data || null,
+    payment: data.payment,
+    clientSecret: data?.clientSecret|| null,
   };
 
   res.status(data.statusCode).json(response);
