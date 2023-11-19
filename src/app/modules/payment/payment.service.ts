@@ -1,8 +1,6 @@
-// payment.service.ts
-
 import Stripe from 'stripe';
-import { PaymentDTO } from './payment.interface';
-import PaymentModel from './payment.model';
+
+const DOMAIN = 'http://localhost:3000';
 
 const stripeApiKey = process.env.STRIPE_KEY;
 
@@ -10,45 +8,45 @@ if (!stripeApiKey) {
   throw new Error('Stripe API key is not defined.');
 }
 
-const stripe = new Stripe(stripeApiKey, {
-  apiVersion: '2023-10-16',
-});
+const stripe = new Stripe(stripeApiKey);
 
-const createPayment = async (
-  paymentDTO: PaymentDTO
-): Promise<string | null> => {
+const createCheckoutSession = async (product: any) => {
   try {
-    console.log('Received paymentDTO:', paymentDTO);
+    const lineItems = [
+      {
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: product.name,
+            images: [product.image],
+            metadata: {
+              id: product._id,
+            },
+          },
+          unit_amount: product.price * 100,
+        },
+        quantity: 1,
+      },
+    ];
 
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(paymentDTO.price * 100),
-      currency: 'usd',
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: lineItems,
+      mode: 'payment',
+      success_url: `${DOMAIN}/payment/success`,
+      cancel_url: `${DOMAIN}/payment/cancel`,
     });
 
-    console.log('PaymentIntent details:', paymentIntent);
-
-    if (paymentIntent.client_secret) {
-      const clientSecret = paymentIntent.client_secret;
-      console.log('Client Secret:', clientSecret);
-
-      if (paymentIntent.status === 'succeeded') {
-        const payment = new PaymentModel(paymentDTO);
-        await payment.save();
-        console.log('Payment saved successfully!');
-      }
-
-      return clientSecret;
-    } else {
-      console.error('Failed to retrieve client_secret.');
-      throw new Error('Failed to confirm payment');
-    }
-  } catch (error) {
-    console.error('Error during payment creation:', error);
-    throw new Error('Failed to create payment');
+    return {
+      sessionId: session.id,
+      sessionUrl: session.url,
+    };
+  } catch (err) {
+    console.error(err);
+    throw err;
   }
 };
 
-
 export const PaymentService = {
-  createPayment,
+  createCheckoutSession,
 };
